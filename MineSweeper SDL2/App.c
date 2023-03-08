@@ -63,37 +63,55 @@ void displayFPS(App* app) {
 	SDL_RenderCopy(app->renderer, fpsTex, NULL, &rect);
 }
 
-void displayBoard(App* app, Board* board, SDL_Texture** resources) {
-	SDL_Rect clip;
-	clip.x = 0;
-	clip.y = 0;
-	clip.w = 64;
-	clip.h = 64;
-
+void displayBoard(App* app, Board* board, SDL_Texture* resources[]) {
 	for (int i = 0; i < board->width; i++)
 	{
 		for (int j = 0; j < board->height; j++)
 		{
-			// More perf ?
-			//Slot* slot = getSlot(board, i, j);
-			//SDL_RenderCopy(app->renderer, resources[0], &clip, &slot.transform); // Put the transform in the slot and initialize it at the same moment
+			SDL_Rect clip;
+			clip.x = 0;
+			clip.y = 0;
+			clip.w = 64;
+			clip.h = 64;
 
-			SDL_Rect transform;
-			transform.x = i * TILE_SIZE;
-			transform.y = j * TILE_SIZE;
-			transform.w = TILE_SIZE;
-			transform.h = TILE_SIZE;
-
-			SDL_RenderCopy(app->renderer, resources[0], &clip, &transform);
+			Slot* slot = getSlot(board, i, j);
+			if (slot->revealed) {
+				if (slot->bomb) {
+					SDL_RenderCopy(app->renderer, resources[3], &clip, &slot->transform);
+				}
+				else {
+					if (slot->surroundingBombs > 0) {
+						clip.y = TILE_SIZE * (slot->surroundingBombs - 1);
+						SDL_RenderCopy(app->renderer, resources[2], &clip, &slot->transform);
+					}
+					else {
+						clip.y = TILE_SIZE * 2;
+						SDL_RenderCopy(app->renderer, resources[1], &clip, &slot->transform);
+					}
+				}
+			}
+			else {
+				SDL_RenderCopy(app->renderer, resources[1], &clip, &slot->transform);
+			}
 		}
 	}
 }
 
-void quitApp(App* app, SDL_Texture** resources) {
+void onSlotClicked(App* app, Board* board, Slot* slot) {
+	if (board->firstClick) {
+		board->firstClick = 0;
+		int bombCount = getBombCountFromRatio(board);
+		plantBombs(board, bombCount, slot->x, slot->y);
+		calculateSurroundingBombs(board);
+	}
+	else {
+	}
+	digAt(board, slot->x, slot->y);
+}
+
+void quitApp(App* app, SDL_Texture* resources[], int resourcesSize) {
 	printf("\nQuitting the application...");
-	int resourcesLength = sizeof(resources) / sizeof(resources[0]); // Warning ? 
-	printf("\nResources length: %d", resourcesLength);
-	for (int i = 0; i < resourcesLength; i++)
+	for (int i = 0; i < resourcesSize; i++)
 	{
 		SDL_DestroyTexture(resources[i]);
 	}
