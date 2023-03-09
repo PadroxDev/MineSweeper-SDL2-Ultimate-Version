@@ -9,7 +9,7 @@
 
 void tick(Clock* clock) {
 	uint32_t tick = SDL_GetTicks();
-	clock->deltaTime = (tick - clock->lastTimeTick) * 0.0001; // In seconds
+	clock->deltaTime = (tick - clock->lastTimeTick) * 0.001; // In seconds
 	clock->lastTimeTick = tick;
 }
 
@@ -26,6 +26,15 @@ int initApp(App* app) {
 	if (TTF_Init() < 0) {
 		printf("\nSDL_TTF could not initialize! TTF_Error: %n", TTF_GetError());
 	}
+
+	if (Mix_Init(MIX_INIT_MP3) < 0) {
+		printf("\nSDL_Mixer could not initialize! MIX_Error: %n", Mix_GetError());
+	}
+
+	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024) < 0) {
+		printf("\nSDL_Mixer could not open the audio! MIX_Error: %n", Mix_GetError());
+	}
+
 
 	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
 	app->window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, windowFlags);
@@ -47,6 +56,13 @@ int initApp(App* app) {
 	app->clock.lastTimeTick = SDL_GetTicks();
 	app->running = 1;
 	return 1;
+}
+
+void setCursor(App* app) {
+	SDL_Surface* cursorSurf = IMG_Load(CURSOR_PATH);
+	SDL_Cursor* cursor = SDL_CreateColorCursor(cursorSurf, 0, 0);
+	SDL_SetCursor(cursor);
+	app->cursor = cursor;
 }
 
 void displayFPS(App* app) {
@@ -92,7 +108,7 @@ void displayBoard(App* app, Board* board, SDL_Texture* resources[]) {
 				}
 			}
 			else {
-				SDL_RenderCopy(app->renderer, resources[1], &clip, &slot->transform);
+				updateSprite(&slot->spriteRenderer, app);
 				if (slot->flag) {
 					SDL_RenderCopy(app->renderer, resources[4], &clip, &slot->transform);
 				}
@@ -101,7 +117,7 @@ void displayBoard(App* app, Board* board, SDL_Texture* resources[]) {
 	}
 }
 
-void onSlotClicked(App* app, Board* board, Slot* slot) {
+void onSlotClicked(App* app, Board* board, Slot* slot, Mix_Chunk* soundResources[]) {
 	if (board->firstClick) {
 		board->firstClick = 0;
 		clearFlags(board);
@@ -109,23 +125,24 @@ void onSlotClicked(App* app, Board* board, Slot* slot) {
 		plantBombs(board, bombCount, slot->x, slot->y);
 		calculateSurroundingBombs(board);
 		digAt(board, slot->x, slot->y);
+		Mix_PlayChannel(1, soundResources[0], 0);
 	}
 	else {
 	}
-	if (!slot->revealed)
+	if (!slot->revealed) {
 		digAt(board, slot->x, slot->y);
+		Mix_PlayChannel(1, soundResources[0], 0);
+	}
 	else if (slot->surroundingBombs > 0 && countNearbyFlags(board, slot->x, slot->y) == slot->surroundingBombs) {
 		for (int i = slot->x - 1; i < slot->x + 2; i++) {
 			for (int j = slot->y - 1; j < slot->y + 2; j++) {
 				if (!isInBorder(board, i, j))
 					continue;
-				if (!slot->flag && !slot->revealed)
+				if (!slot->flag && !slot->revealed) 					{
 					digAt(board, i, j);
+					Mix_PlayChannel(1, soundResources[0], 0);
+				}
 			}
-
-
-
-
 		}
 	}
 	if (isVictory(board)) {
@@ -133,13 +150,19 @@ void onSlotClicked(App* app, Board* board, Slot* slot) {
 	}
 }
 
-void quitApp(App* app, SDL_Texture* resources[], int resourcesSize) {
+void quitApp(App* app, SDL_Texture* resources[], int resourcesSize, Mix_Music* ambientMusic, Mix_Chunk* soundResources[], int soundResourcesSize) {
 	printf("\nQuitting the application...");
 	for (int i = 0; i < resourcesSize; i++)
 	{
 		SDL_DestroyTexture(resources[i]);
 	}
+	for (int i = 0; i < soundResourcesSize; i++) {
+		Mix_FreeChunk(soundResources[i]);
+	}
+	SDL_FreeCursor(app->cursor);
+	Mix_FreeMusic(ambientMusic);
 	SDL_DestroyRenderer(app->renderer);
 	SDL_DestroyWindow(app->window);
+	Mix_CloseAudio();
 	SDL_Quit();
 }

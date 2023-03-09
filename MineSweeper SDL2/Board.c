@@ -34,7 +34,7 @@ Slot* getSlot(Board* board, int x, int y) {
 	return &board->grid[pos];
 }
 
-void initBoard(Board* board, int width, int height) {
+void initBoard(Board* board, int width, int height, SDL_Texture* resources[]) {
 	printf("\nBoard's initializing...");
 
 	board->width = width;
@@ -42,8 +42,10 @@ void initBoard(Board* board, int width, int height) {
 	board->firstClick = 1;
 
 	board->grid = (Slot*)malloc(sizeof(Slot) * (board->width * board->height));
+
 	if (board->grid) // Successfully allocated?
 	{
+		srand(time(NULL));
 		for (int i = 0; i < width; i++)
 		{
 			for (int j = 0; j < height; j++)
@@ -54,6 +56,12 @@ void initBoard(Board* board, int width, int height) {
 				// Initialize every slots
 				Slot* slot = getSlot(board, i, j);
 				initSlot(slot, i, j, centerX, centerY);
+				if (rand() % 101 <= CACTUS_TILE_CHANCE) { // 1 / 100
+					initSprite(&slot->spriteRenderer, resources[5], 2, CACTUS_ANIMATION_SPEED, &slot->transform, (rand() % 101 <= 50));
+				}
+				else {
+					initSprite(&slot->spriteRenderer, resources[1], 1, 1, &slot->transform, SDL_FLIP_NONE);
+				}
 			}
 		}
 	}

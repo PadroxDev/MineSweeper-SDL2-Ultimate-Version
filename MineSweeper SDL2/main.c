@@ -3,31 +3,47 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <SDL_mixer.h>
 #include "App.h"
 #include "Board.h"
 #include "Resources.h"
 #include "Settings.h"
 #include "array.h"
+#include "SpriteRenderer.h"
 
-void onMouseLeftButtonDown(SDL_Event* events, App* app, Board* board);
+void onMouseLeftButtonDown(SDL_Event* events, App* app, Board* board, Mix_Chunk* soundResources[]);
 void onMouseRightButtonDown(SDL_Event* events, App* app, Board* board);
 void onWindowResized(SDL_Event* events, App* app, Board* board);
 void handleEvents(App* app, Board* board);
-void handleRender(App* app, Board* board, SDL_Texture* resources[]);
+void handleRender(App* app, Board* board, SDL_Texture* resources[], Mix_Chunk* soundResources[]);
 
 int main() {
 	// Initializing app
 	App app;
 	if (!initApp(&app)) {
-		quitApp(&app, NULL, 0);
+		quitApp(&app, NULL, 0, NULL, NULL, 0);
 	}
 
 	// Loading resources
-	SDL_Texture* resources[5];
+	SDL_Texture* resources[8];
 	initResources(&app, resources);
 
+	Mix_Chunk* soundResources[1];
+	initSoundResources(&app, soundResources);
+
+	setCursor(&app);
+
+	Mix_Music* ambientMusic;
+	ambientMusic = Mix_LoadMUS("res/AmbiantMusic.mp3");
+
+	Mix_AllocateChannels(5);
+	Mix_Volume(1, MIX_MAX_VOLUME / 2);
+
+	Mix_PlayMusic(ambientMusic, 1);
+	Mix_VolumeMusic(MIX_MAX_VOLUME*40);
+
 	Board board;
-	initBoard(&board, GRID_WIDTH, GRID_HEIGHT);
+	initBoard(&board, GRID_WIDTH, GRID_HEIGHT, resources);
 
 	// Gameloop
 	while (app.running) {
@@ -35,10 +51,10 @@ int main() {
 		tick(&app.clock);
 
 		// Events
-		handleEvents(&app, &board);
+		handleEvents(&app, &board, soundResources);
 
 		// Render
-		handleRender(&app, &board, resources);
+		handleRender(&app, &board, resources, soundResources);
 
 		Uint64 end = SDL_GetPerformanceCounter();
 		float elapsed = (end - start) / (float)SDL_GetPerformanceFrequency();
@@ -49,7 +65,8 @@ int main() {
 
 	// Quitting app
 	int resourcesSize = sizeof(resources) / sizeof(resources[0]);
-	quitApp(&app, resources, resourcesSize);
+	int soundResourcesSize = sizeof(soundResources) / sizeof(resources[0]);
+	quitApp(&app, resources, resourcesSize, ambientMusic, soundResources, soundResourcesSize);
 
 	return 0;
 }
@@ -69,10 +86,10 @@ Slot* getClickedSlot(SDL_Event* events, Board* board) {
 	return NULL;
 }
 
-void onMouseLeftButtonDown(SDL_Event* events, App* app, Board* board) {
+void onMouseLeftButtonDown(SDL_Event* events, App* app, Board* board, Mix_Chunk* soundResources[]) {
 	Slot* clickedSlot = getClickedSlot(events, board);
 	if (clickedSlot != NULL) {
-		onSlotClicked(app, board, clickedSlot);
+		onSlotClicked(app, board, clickedSlot, soundResources);
 	}
 }
 
@@ -105,7 +122,7 @@ void onWindowResized(SDL_Event* events, App* app, Board* board) {
 	//}
 }
 
-void handleEvents(App* app, Board* board) {
+void handleEvents(App* app, Board* board, Mix_Chunk* soundResources[]) {
 	SDL_Event events;
 	while (SDL_PollEvent(&events) != 0) {
 		switch (events.type) {
@@ -114,7 +131,7 @@ void handleEvents(App* app, Board* board) {
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			if (events.button.button == SDL_BUTTON_LEFT) {
-				onMouseLeftButtonDown(&events, app, board);
+				onMouseLeftButtonDown(&events, app, board, soundResources);
 			}
 			else if (events.button.button == SDL_BUTTON_RIGHT) {
 				onMouseRightButtonDown(&events, app, board);
@@ -129,7 +146,7 @@ void handleEvents(App* app, Board* board) {
 	}
 }
 
-void handleRender(App* app, Board* board, SDL_Texture* resources[]) {
+void handleRender(App* app, Board* board, SDL_Texture* resources[], Mix_Chunk* soundResources[]) {
 	SDL_SetRenderDrawColor(app->renderer, 190, 190, 190, 255);
 	SDL_RenderClear(app->renderer); // Clear the window
 	SDL_RenderCopy(app->renderer, resources[0], NULL, NULL);

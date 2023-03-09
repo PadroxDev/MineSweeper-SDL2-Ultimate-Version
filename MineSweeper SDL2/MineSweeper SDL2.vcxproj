@@ -24,6 +24,7 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="Resources.c" />
     <ClCompile Include="array.c" />
+    <ClCompile Include="SpriteRenderer.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -31,6 +32,7 @@
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="array.h" />
+    <ClInclude Include="SpriteRenderer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -118,12 +120,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\antoi\Desktop\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\avollet\Desktop\SDL2-2.26.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\antoi\Desktop\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\avollet\Desktop\SDL2-2.26.4\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

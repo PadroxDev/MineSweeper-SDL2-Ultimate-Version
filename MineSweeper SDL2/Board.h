@@ -1,5 +1,5 @@
 #pragma once
-//#include <SDL.h>
+#include "SpriteRenderer.h"
 
 typedef struct Array Array;
 
@@ -16,6 +16,7 @@ typedef struct Slot {
 	int bomb;
 	int surroundingBombs;
 	SDL_Rect2 transform;
+	SpriteRenderer spriteRenderer;
 } Slot;
 
 void initSlot(Slot* slot, int x, int y, int offsetX, int offsetY);
@@ -33,7 +34,7 @@ void getTwoDimensionalPosition(Board* oBoard, int pos, int* outCoords);
 
 Slot* getSlot(Board* board, int x, int y);
 
-void initBoard(Board* board, int width, int height);
+void initBoard(Board* board, int width, int height, SDL_Texture* resources[]);
 
 int getBombCountFromRatio(Board* board);
 
