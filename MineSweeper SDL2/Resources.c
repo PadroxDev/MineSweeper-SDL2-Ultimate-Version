@@ -11,4 +11,5 @@ void initResources(App* app, SDL_Texture* resources[]) {
 	resources[1] = IMG_LoadTexture(app->renderer, "res/GroundTile.jpg");
 	resources[2] = IMG_LoadTexture(app->renderer, "res/SheriffStars_SpriteSheet.jpg");
 	resources[3] = IMG_LoadTexture(app->renderer, "res/Dynamite_SpriteSheet.jpg");
+	resources[4] = IMG_LoadTexture(app->renderer, "res/BullSkull.png");
 }

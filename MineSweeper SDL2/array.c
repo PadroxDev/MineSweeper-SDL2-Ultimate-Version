@@ -47,7 +47,7 @@ void removeAt(Array* array, int index) {
 		}
 	}
 
-	for (int i = index + 1; i < array->size; i++) {
+	for (int i = index + 1; i < array->size+1; i++) {
 		array->content[i - 1] = array->content[i];
 	}
 }

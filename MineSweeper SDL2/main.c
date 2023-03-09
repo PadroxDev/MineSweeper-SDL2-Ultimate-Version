@@ -9,16 +9,13 @@
 #include "Settings.h"
 #include "array.h"
 
+void onMouseLeftButtonDown(SDL_Event* events, App* app, Board* board);
+void onMouseRightButtonDown(SDL_Event* events, App* app, Board* board);
+void onWindowResized(SDL_Event* events, App* app, Board* board);
 void handleEvents(App* app, Board* board);
 void handleRender(App* app, Board* board, SDL_Texture* resources[]);
 
 int main() {
-
-	Array availablePositions = { 0,0, NULL }; 
-	
-	Array tezeea;
-	initArray(&availablePositions, 10);
-	
 	// Initializing app
 	App app;
 	if (!initApp(&app)) {
@@ -57,6 +54,57 @@ int main() {
 	return 0;
 }
 
+Slot* getClickedSlot(SDL_Event* events, Board* board) {
+	for (int i = 0; i < board->width; i++) {
+		for (int j = 0; j < board->height; j++) {
+			SDL_Point clickPoint = { events->button.x, events->button.y };
+			Slot* slot = getSlot(board, i, j);
+			SDL_bool result = SDL_PointInRect(&clickPoint, &slot->transform);
+			if (result) {
+				return slot;
+				break;
+			}
+		}
+	}
+	return NULL;
+}
+
+void onMouseLeftButtonDown(SDL_Event* events, App* app, Board* board) {
+	Slot* clickedSlot = getClickedSlot(events, board);
+	if (clickedSlot != NULL) {
+		onSlotClicked(app, board, clickedSlot);
+	}
+}
+
+void onMouseRightButtonDown(SDL_Event* events, App* app, Board* board) {
+	Slot* clickedSlot = getClickedSlot(events, board);
+	if (clickedSlot != NULL) {
+		clickedSlot->flag = clickedSlot->flag == 1 ? 0 : 1;
+	}
+}
+
+void onWindowResized(SDL_Event* events, App* app, Board* board) {
+	//int newWidth = events->window.data1;
+	//int newHeight = events->window.data2;
+	//float wScale = (float)WINDOW_WIDTH / (float)newWidth;
+	//float hScale = (float)WINDOW_HEIGHT / (float)newHeight;
+
+	//for (int i = 0; i < board->width; i++)
+	//{
+	//	for (int j = 0; j < board->height; j++)
+	//	{
+	//		int offsetX = newWidth / 2 - (board->width * TILE_SIZE * wScale) / 2;
+	//		int offsetY = newHeight / 2 - (board->height * TILE_SIZE * hScale) / 2;
+
+	//		Slot* slot = getSlot(board, i, j);
+	//		slot->transform.x = (TILE_SIZE * wScale) * i + offsetX;
+	//		slot->transform.y = (TILE_SIZE * hScale) * j + offsetY;
+	//		slot->transform.w = (TILE_SIZE * wScale);
+	//		slot->transform.h = (TILE_SIZE * hScale);
+	//	}
+	//}
+}
+
 void handleEvents(App* app, Board* board) {
 	SDL_Event events;
 	while (SDL_PollEvent(&events) != 0) {
@@ -66,17 +114,14 @@ void handleEvents(App* app, Board* board) {
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			if (events.button.button == SDL_BUTTON_LEFT) {
-				for (int i = 0; i < board->width; i++) {
-					for (int j = 0; j < board->height; j++) {
-						SDL_Point clickPoint = { events.button.x, events.button.y };
-						Slot* slot = getSlot(board, i, j);
-						SDL_bool result = SDL_PointInRect(&clickPoint, &slot->transform);
-						if (result) {
-							onSlotClicked(app, board, slot);
-							break;
-						}
-					}
-				}
+				onMouseLeftButtonDown(&events, app, board);
+			}
+			else if (events.button.button == SDL_BUTTON_RIGHT) {
+				onMouseRightButtonDown(&events, app, board);
+			}
+		case SDL_WINDOWEVENT:
+			if (events.window.event == SDL_WINDOWEVENT_RESIZED) {
+				onWindowResized(&events, app, board);
 			}
 		default:
 			break;

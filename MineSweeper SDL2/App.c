@@ -27,7 +27,8 @@ int initApp(App* app) {
 		printf("\nSDL_TTF could not initialize! TTF_Error: %n", TTF_GetError());
 	}
 
-	app->window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+	app->window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, windowFlags);
 
 	if (!app->window) {
 		printf("\nWindow could not be created! SDL_Error: %n", SDL_GetError());
@@ -58,7 +59,7 @@ void displayFPS(App* app) {
 	SDL_Surface* fpsSurf = TTF_RenderText_Solid(font, buffer, color);
 	SDL_Texture* fpsTex = SDL_CreateTextureFromSurface(app->renderer, fpsSurf);
 
-	SDL_Rect rect = { 5, 5, fpsSurf->w, fpsSurf->h };
+	SDL_Rect rect = { 50, 50, fpsSurf->w, fpsSurf->h };
 
 	SDL_RenderCopy(app->renderer, fpsTex, NULL, &rect);
 }
@@ -92,6 +93,9 @@ void displayBoard(App* app, Board* board, SDL_Texture* resources[]) {
 			}
 			else {
 				SDL_RenderCopy(app->renderer, resources[1], &clip, &slot->transform);
+				if (slot->flag) {
+					SDL_RenderCopy(app->renderer, resources[4], &clip, &slot->transform);
+				}
 			}
 		}
 	}
@@ -100,13 +104,33 @@ void displayBoard(App* app, Board* board, SDL_Texture* resources[]) {
 void onSlotClicked(App* app, Board* board, Slot* slot) {
 	if (board->firstClick) {
 		board->firstClick = 0;
+		clearFlags(board);
 		int bombCount = getBombCountFromRatio(board);
 		plantBombs(board, bombCount, slot->x, slot->y);
 		calculateSurroundingBombs(board);
+		digAt(board, slot->x, slot->y);
 	}
 	else {
 	}
-	digAt(board, slot->x, slot->y);
+	if (!slot->revealed)
+		digAt(board, slot->x, slot->y);
+	else if (slot->surroundingBombs > 0 && countNearbyFlags(board, slot->x, slot->y) == slot->surroundingBombs) {
+		for (int i = slot->x - 1; i < slot->x + 2; i++) {
+			for (int j = slot->y - 1; j < slot->y + 2; j++) {
+				if (!isInBorder(board, i, j))
+					continue;
+				if (!slot->flag && !slot->revealed)
+					digAt(board, i, j);
+			}
+
+
+
+
+		}
+	}
+	if (isVictory(board)) {
+		win(board);
+	}
 }
 
 void quitApp(App* app, SDL_Texture* resources[], int resourcesSize) {

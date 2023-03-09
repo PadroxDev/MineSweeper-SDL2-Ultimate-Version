@@ -71,7 +71,7 @@ void elaborateSafeZone(Board* board, Array* positions, int x, int y) {
 	for (int i = x - 1; i < x + 2; i++) {
 		for (int j = y - 1; j < y + 2; j++) {
 			if (isInBorder(board, i, j)) {
-				removeEl(positions, getArrayPosition(board, x, y));
+				removeEl(positions, getArrayPosition(board, i, j));
 			}
 		}
 	}
@@ -92,11 +92,10 @@ void plantBombs(Board* board, int quantity, int startingX, int startingY) {
 
 	elaborateSafeZone(board, &availablePositions, startingX, startingY);
 
-
 	for (int i = 0; i < quantity; i++) {
 		int iRandPos = rand() % availablePositions.size;
 		int coords[2];
-		getTwoDimensionalPosition(board, iRandPos, &coords);
+		getTwoDimensionalPosition(board, availablePositions.content[iRandPos], &coords); // Why???
 		Slot* slot = getSlot(board, coords[0], coords[1]);
 		slot->bomb = 1;
 		removeAt(&availablePositions, iRandPos);
@@ -126,7 +125,6 @@ void calculateSurroundingBombs(Board* board) {
 void digAt(Board* board, int x, int y) {
 	Slot* slot = getSlot(board, x, y);
 	if (slot->flag) {
-		printf("YOU CAN'T DIG WHERE THERE IS A FLAG UWUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU");
 		return;
 	}
 	if (slot->bomb) {
@@ -158,6 +156,32 @@ void recursiveReveal(Board* board, Slot* slot) {
 	}
 }
 
+int countNearbyFlags(Board* board, int x, int y) {
+	int counter = 0;
+	for (int i = x - 1; i < x + 2; i++) {
+		for (int j = y - 1; j < y + 2; j++) {
+			if (isInBorder(board, i, j)) {
+				Slot* slot = getSlot(board, i, j);
+				if (slot->flag) {
+					counter++;
+				}
+			}
+		}
+	}
+	return counter;
+}
+
+void clearFlags(Board* board) {
+	for (int i = 0; i < board->width; i++)
+	{
+		for (int j = 0; j < board->height; j++)
+		{
+			Slot* slot = getSlot(board, i, j);
+			slot->flag = 0;
+		}
+	}
+}
+
 void revealGrid(Board* board) {
 	for (int i = 0; i < board->width; i++) {
 		for (int j = 0; j < board->height; j++) {
@@ -167,7 +191,26 @@ void revealGrid(Board* board) {
 	}
 }
 
-void loose(Board* oBoard) {
-	revealGrid(oBoard);
-	printf("You lost!");
+void loose(Board* board) {
+	revealGrid(board);
+	printf("\nYou lost!");
+}
+
+int isVictory(Board* board) {
+	for (int i = 0; i < board->width; i++)
+	{
+		for (int j = 0; j < board->height; j++)
+		{
+			Slot* slot = getSlot(board, i, j);
+			if (slot->revealed == 0 && slot->bomb != 1) {
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+void win(Board* board) {
+	revealGrid(board);
+	printf("\nYou won! Well played!");
 }
