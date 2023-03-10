@@ -26,6 +26,7 @@ typedef struct Board {
 	int width;
 	int height;
 	int firstClick;
+	int MED_GRID_SIZE;
 } Board;
 
 int getArrayPosition(Board* board, int x, int y);
@@ -46,7 +47,7 @@ void plantBombs(Board* board, int bombsCount, int startingX, int startingY);
 
 void calculateSurroundingBombs(Board* board);
 
-void digAt(Board* board, int x, int y);
+void digAt(Board* board, int x, int y, int* displayResult, SpriteRenderer* result, SDL_Texture* resources[]);
 
 void recursiveReveal(Board* board, Slot* slot);
 
@@ -56,8 +57,8 @@ void clearFlags(Board* board);
 
 void revealGrid(Board* board);
 
-void loose(Board* board);
+void loose(Board* board, int* displayResult, SpriteRenderer* result, SDL_Texture* resources[]);
 
 int isVictory(Board* board);
 
-void win(Board* board);
+void win(Board* board, int* displayResult, SpriteRenderer* result, SDL_Texture* resources[]);

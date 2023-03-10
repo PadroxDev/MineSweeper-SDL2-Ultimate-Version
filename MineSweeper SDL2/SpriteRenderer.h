@@ -12,8 +12,10 @@ typedef struct SpriteRenderer {
 	float lifetime;
 	SDL_Rect* transform;
 	int flip;
+	int tileWidth;
+	int tileHeight;
 } SpriteRenderer;
 
-void initSprite(SpriteRenderer* renderer, SDL_Texture* spriteSheet, int spriteCount, float animationSpeed, SDL_Rect* transform, int flip);
+void initSprite(SpriteRenderer* renderer, SDL_Texture* spriteSheet, int spriteCount, float animationSpeed, SDL_Rect* transform, int flip, int tileWidth, int tileHeight);
 
 void updateSprite(SpriteRenderer* renderer, App* app);

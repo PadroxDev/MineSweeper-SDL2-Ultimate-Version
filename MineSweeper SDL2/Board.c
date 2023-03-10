@@ -57,10 +57,10 @@ void initBoard(Board* board, int width, int height, SDL_Texture* resources[]) {
 				Slot* slot = getSlot(board, i, j);
 				initSlot(slot, i, j, centerX, centerY);
 				if (rand() % 101 <= CACTUS_TILE_CHANCE) { // 1 / 100
-					initSprite(&slot->spriteRenderer, resources[5], 2, CACTUS_ANIMATION_SPEED, &slot->transform, (rand() % 101 <= 50));
+					initSprite(&slot->spriteRenderer, resources[5], 2, CACTUS_ANIMATION_SPEED, &slot->transform, (rand() % 101 <= 50), TILE_SIZE, TILE_SIZE);
 				}
 				else {
-					initSprite(&slot->spriteRenderer, resources[1], 1, 1, &slot->transform, SDL_FLIP_NONE);
+					initSprite(&slot->spriteRenderer, resources[1], 1, 1, &slot->transform, SDL_FLIP_NONE, TILE_SIZE, TILE_SIZE);
 				}
 			}
 		}
@@ -130,13 +130,13 @@ void calculateSurroundingBombs(Board* board) {
 	}
 }
 
-void digAt(Board* board, int x, int y) {
+void digAt(Board* board, int x, int y, int* displayResult, SpriteRenderer* result, SDL_Texture* resources[]) {
 	Slot* slot = getSlot(board, x, y);
 	if (slot->flag) {
 		return;
 	}
 	if (slot->bomb) {
-		loose(board);
+		loose(board, displayResult, result, resources);
 	}
 	else if (slot->surroundingBombs == 0) {
 		recursiveReveal(board, slot);
@@ -199,9 +199,10 @@ void revealGrid(Board* board) {
 	}
 }
 
-void loose(Board* board) {
+void loose(Board* board, int* displayResult, SpriteRenderer* result, SDL_Texture* resources[]) {
 	revealGrid(board);
 	printf("\nYou lost!");
+	*displayResult = -1;
 }
 
 int isVictory(Board* board) {
@@ -210,7 +211,7 @@ int isVictory(Board* board) {
 		for (int j = 0; j < board->height; j++)
 		{
 			Slot* slot = getSlot(board, i, j);
-			if (slot->revealed == 0 && slot->bomb != 1) {
+			if ((slot->revealed == 0 && slot->bomb != 1) || slot->revealed && slot->bomb) {
 				return 0;
 			}
 		}
@@ -218,7 +219,9 @@ int isVictory(Board* board) {
 	return 1;
 }
 
-void win(Board* board) {
+void win(Board* board, int* displayResult, SpriteRenderer* result, SDL_Texture* resources[]) {
 	revealGrid(board);
 	printf("\nYou won! Well played!");
+	*displayResult = 1;
+	printf("ratio");
 }
